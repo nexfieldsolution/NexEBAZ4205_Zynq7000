@@ -1,0 +1,35 @@
+# Vivado generated files
+vivado/project_new/
+vivado/**/*.cache/
+vivado/**/*.hw/
+vivado/**/*.ip_user_files/
+vivado/**/*.runs/
+vivado/**/*.sim/
+vivado/**/*.gen/
+vivado/**/*.srcs/utils_1/
+
+# Vivado logs and journals
+*.log
+*.jou
+*.pb
+*.vsp
+*.str
+.Xil/
+
+# Webtalk
+usage_statistics_webtalk.html
+usage_statistics_webtalk.xml
+webtalk.log
+webtalk.jou
+
+# Vitis generated files
+vitis/**/*.ide/
+vitis/**/build/
+vitis/**/_ide/
+vitis/**/.metadata/
+vitis/**/.Xil/
+vitis/**/*.launch
+vitis/**/*.xclbin
+
+# XSA (Vivado 재생성 파일은 제외, 수동 배포용은 포함)
+# vivado/*.xsa
