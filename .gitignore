@@ -33,3 +33,11 @@ vitis/**/*.xclbin
 
 # XSA (Vivado 재생성 파일은 제외, 수동 배포용은 포함)
 # vivado/*.xsa
+
+# PetaLinux 대용량 바이너리 및 불필요 폴더
+*.tar.gz
+*.cpio
+*.cpio.gz
+image.ub
+u-boot.bin
+rootfs_options/
