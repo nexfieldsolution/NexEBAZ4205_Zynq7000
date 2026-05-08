@@ -66,9 +66,13 @@ SD카드를 뽑고 JTAG 연결 후:
 ```bash
 # PetaLinux 2024.1
 xsdb download_uboot_jtag-2024.tcl
+- petalinux-2024.1 sdk를 우분투 24.04에서 make한 결과물에서 u-boot-dtb.bin 를 실행
+  Ubuntu 22.04 Docker 컨테이너에서 make (petalinux-build)함
 
 # PetaLinux 2019.2
 xsdb download_uboot_jtag-2019.tcl
+- petalinux-2019 버전으로 prebuilt된 BOOT.BIN에서 u-boot.bin을 추출해서 실행
+
 ```
 
 시리얼 포트: J7 커넥터 (UART1, 115200bps)
@@ -76,8 +80,42 @@ xsdb download_uboot_jtag-2019.tcl
 ### 하드웨어 연결
 ![EBAZ4205 Board](./ebaz4205+io.png)
 
-### JTAG U-Boot 부팅 성공
-![U-Boot OK](./petalinux-uboot-ok-20260508.png)
+### JTAG U-Boot 부팅 성공 (petalinux-2019)
+![U-Boot OK](./petalinux-2019-uboot-ok-20260508.png)
+
+### JTAG U-Boot 부팅 성공 (petalinux-2024.1)
+![U-Boot OK](./petalinux-2024.1-uboot-ok-20260508.png)
+
+### JTAG U-Boot 부팅 성공 (petalinux-2024.1)
+![U-Boot OK](./petalinux-2024.1-uboot-ok-20260508.png)
+
+
+### PetaLinux 빌드
+
+Docker 환경에서 실행:
+
+```bash
+# XSA로 하드웨어 설정 갱신
+petalinux-config --get-hw-description=/path/to/vivado/project_new/ebaz4205_zynq.xsa
+
+# 빌드
+petalinux-build
+
+# BOOT.BIN 패키징
+petalinux-package --boot --fsbl images/linux/zynq_fsbl.elf \
+    --fpga images/linux/system.bit --u-boot --force
+```
+
+빌드 결과물 (`images/linux/`):
+
+| 파일 | 용도 |
+|------|------|
+| `BOOT.BIN` | SD카드 부트 이미지 (FSBL + U-Boot + DTB) |
+| `image.ub` | 커널 + rootfs FIT 이미지 |
+| `u-boot-dtb.bin` | JTAG 로드용 U-Boot (DTB 내장) |
+| `system.dtb` | 디바이스 트리 |
+| `system.bit` | PL 비트스트림 |
+| `zynq_fsbl.elf` | FSBL |
 
 ### SD카드 준비
 
@@ -103,44 +141,39 @@ xsdb download_uboot_jtag-2019.tcl
 ## Directory Structure
 
 ```
-05_Zynq7000/
-├── vivado/                 # Vivado hardware design
-│   ├── block_design.png    # Block design overview
-│   └── project files       # Vivado project files
-├── vitis/                  # Vitis software applications
-│   ├── README.md           # Detailed software documentation
-│   ├── README_JP.md        # Japanese documentation
-│   └── application folders # Individual application projects
-└── README.md               # This file
+EBAZ4205_Zynq7000/
+├── vivado/
+│   ├── create_project.tcl          # 프로젝트 생성 스크립트 (PS7 + AXI GPIO)
+│   ├── run_impl.tcl                # 합성 → 구현 → 비트스트림 → XSA
+│   ├── write_bitstream.tcl         # 비트스트림만 재생성
+│   ├── EBAZ4205.xdc                # 핀 제약 파일
+│   ├── block_design.png            # 블록 디자인 캡처
+│   ├── zynq7000_all.xsa            # PetaLinux용 XSA (참조용)
+│   └── project_new/                # (gitignore) vivado 프로젝트 생성 위치
+│       └── ...impl_1/
+│           ├── design_1_wrapper.bit
+│           └── _ide/psinit/ps7_init.tcl
+├── Petalinux-2019.2/
+│   ├── BOOT.BIN                    # 부트 이미지
+│   ├── u-boot.bin                  # BOOT.BIN에서 추출한 U-Boot (bs=4)
+│   └── rootfs_options/             # rootfs 옵션 설명
+├── Petalinux-2024.1/
+│   ├── BOOT.BIN                    # 부트 이미지
+│   ├── u-boot-dtb.bin              # JTAG 로드용 U-Boot (DTB 내장)
+│   ├── u-boot.bin                  # U-Boot 단독 바이너리
+│   ├── system.dtb                  # 디바이스 트리
+│   └── rootfs_options/
+├── vitis/
+│   ├── README.md
+│   ├── README_JP.md
+│   └── vitis_zynq7000_all_archive.ide.zip
+├── download_uboot_jtag-2019.tcl    # JTAG U-Boot 로드 (PetaLinux 2019.2)
+├── download_uboot_jtag-2024.tcl    # JTAG U-Boot 로드 (PetaLinux 2024.1)
+├── make-sd.sh                      # SD카드 파티션 및 파일 복사
+└── README.md
 ```
 
-## Applications Summary
 
-| Application | Purpose | Key Features |
-|-------------|---------|--------------|
-| LED External Test 1 | Basic GPIO control | Direct register access, 8-state pattern |
-| LED External Test 2 | Driver-based GPIO | XGpio driver, error handling |
-| lwIP Echo Server | Network testing | TCP/UDP echo, IPv4/IPv6 support |
-| Memory Test | Memory validation | Comprehensive testing, error reporting |
-| Peripheral Test | Multi-peripheral testing | GPIO, UART, I2C, SPI, Timer, DMA |
-| PS LCD | Display control | EMIO GPIO, color rendering |
-
-## Common Development Workflow
-
-1. **Hardware Design**: Configure FPGA in Vivado
-2. **Software Development**: Create applications in Vitis
-3. **Testing**: Program and validate functionality
-4. **Debugging**: Monitor UART and verify operation
-
-## Support
-
-- **Vivado Documentation**: See `vivado/` directory
-- **Vitis Documentation**: See `vitis/README.md`
-- **Hardware Reference**: EBAZ4205 documentation
-- **Xilinx Documentation**: https://docs.xilinx.com/
-
----
-
-**Last Updated**: February 2026  
+**Last Updated**: May 2026  
 **Platform**: Xilinx Zynq-7000  
 **Target Board**: EBAZ4205

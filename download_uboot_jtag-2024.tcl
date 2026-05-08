@@ -6,7 +6,7 @@
 
 set PS7    vivado/project_new/ebaz4205_zynq.runs/impl_1/_ide/psinit/ps7_init.tcl
 set BIT    vivado/project_new/ebaz4205_zynq.runs/impl_1/design_1_wrapper.bit
-set UBOOT  "Petalinux-2024.1/u-boot.bin"
+set UBOOT  "Petalinux-2024.1/u-boot-dtb.bin"
 
 connect
 
