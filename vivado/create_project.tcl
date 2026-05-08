@@ -3,7 +3,7 @@
 # 실행: vivado -mode batch -source vivado/create_project.tcl
 # 출력: vivado/project_new/
 # 디바이스: xc7z020clg400-1 (EBAZ4205 Zynq-7020)
-# PS_CLK: 50MHz, DDR: 16-bit EM6GD16EWKG-12H
+# PS_CLK: 33.333MHz, DDR: 16-bit EM6GD16EWKG-12H
 # =============================================================
 
 set SCRIPT_DIR [file dirname [file normalize [info script]]]
@@ -29,19 +29,16 @@ create_bd_design $BD_NAME
 # PS7 추가
 set ps7 [create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0]
 
-# PS7 설정 - EBAZ4205 50MHz, DDR3 16-bit
+# PS7 설정 - EBAZ4205 33.333MHz, DDR3 16-bit
 set_property -dict [list \
     CONFIG.PCW_PRESET_BANK0_VOLTAGE     {LVCMOS 3.3V} \
     CONFIG.PCW_PRESET_BANK1_VOLTAGE     {LVCMOS 3.3V} \
-    CONFIG.PCW_CRYSTAL_PERIPHERAL_FREQMHZ {50.000} \
+    CONFIG.PCW_CRYSTAL_PERIPHERAL_FREQMHZ {33.333333} \
     CONFIG.PCW_APU_PERIPHERAL_FREQMHZ   {667} \
-    CONFIG.PCW_FCLK0_PERIPHERAL_FREQMHZ {100} \
-    CONFIG.PCW_FCLK1_PERIPHERAL_FREQMHZ {50} \
-    CONFIG.PCW_FCLK2_PERIPHERAL_FREQMHZ {25} \
-    CONFIG.PCW_FCLK3_PERIPHERAL_FREQMHZ {25} \
-    CONFIG.PCW_FCLK_CLK0_BUF            {TRUE} \
-    CONFIG.PCW_FCLK_CLK1_BUF            {TRUE} \
-    CONFIG.PCW_FCLK_CLK3_BUF            {TRUE} \
+    CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100} \
+    CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {50} \
+    CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ {25} \
+    CONFIG.PCW_FPGA3_PERIPHERAL_FREQMHZ {25} \
     CONFIG.PCW_USE_M_AXI_GP0            {1} \
     CONFIG.PCW_EN_CLK0_PORT             {1} \
     CONFIG.PCW_EN_CLK3_PORT             {1} \
@@ -85,9 +82,9 @@ set_property -dict [list \
     CONFIG.PCW_UART1_UART1_IO           {MIO 24 .. 25} \
     CONFIG.PCW_UART0_PERIPHERAL_ENABLE  {0} \
     CONFIG.PCW_ENET0_PERIPHERAL_ENABLE  {1} \
-    CONFIG.PCW_ENET0_ENET0_IO           {MIO 16 .. 27} \
+    CONFIG.PCW_ENET0_ENET0_IO           {EMIO} \
     CONFIG.PCW_ENET0_GRP_MDIO_ENABLE    {1} \
-    CONFIG.PCW_ENET0_GRP_MDIO_IO        {MIO 52 .. 53} \
+    CONFIG.PCW_ENET0_GRP_MDIO_IO        {EMIO} \
     CONFIG.PCW_ENET1_PERIPHERAL_ENABLE  {0} \
     CONFIG.PCW_SD0_PERIPHERAL_ENABLE    {0} \
     CONFIG.PCW_SD1_PERIPHERAL_ENABLE    {0} \
@@ -149,11 +146,14 @@ save_bd_design
 # =============================================================
 set bd_file [get_files ${BD_NAME}.bd]
 make_wrapper -files $bd_file -top
-set wrapper [glob -nocomplain $PROJ_DIR/${PROJ_NAME}.srcs/sources_1/bd/${BD_NAME}/hdl/*.vhd]
+# Vivado 2019+: wrapper는 .gen/ 에 생성됨
+set wrapper [glob -nocomplain $PROJ_DIR/${PROJ_NAME}.gen/sources_1/bd/${BD_NAME}/hdl/*.vhd]
 if {[llength $wrapper] == 0} {
-    set wrapper [glob -nocomplain $PROJ_DIR/${PROJ_NAME}.srcs/sources_1/bd/${BD_NAME}/hdl/*.v]
+    set wrapper [glob -nocomplain $PROJ_DIR/${PROJ_NAME}.gen/sources_1/bd/${BD_NAME}/hdl/*.v]
 }
-add_files -norecurse $wrapper
+if {[llength $wrapper] > 0} {
+    add_files -norecurse $wrapper
+}
 set_property top ${BD_NAME}_wrapper [current_fileset]
 
 # XDC 제약 파일 추가
@@ -165,19 +165,7 @@ if {[file exists $xdc_file]} {
     puts "경고: XDC 파일 없음 - $xdc_file"
 }
 
-# =============================================================
-# ps7_init.tcl 생성 (JTAG용)
-# =============================================================
-set psinit_dir [file join $PROJ_DIR ${PROJ_NAME}.srcs/sources_1/bd/${BD_NAME}/ip]
-# open_hw_manager 없이 Tcl export
-write_hw_platform -fixed -force -file [file join $PROJ_DIR ebaz4205_zynq.xsa]
 puts ""
 puts "프로젝트 생성 완료: $PROJ_DIR"
-puts "XSA: $PROJ_DIR/ebaz4205_zynq.xsa"
-puts ""
-puts "다음 단계:"
-puts "  1. Vivado GUI에서 프로젝트 열기"
-puts "  2. Run Synthesis → Run Implementation → Generate Bitstream"
-puts "  3. File → Export → Export Hardware (Include Bitstream)"
-puts "  또는: vivado -mode batch -source vivado/run_impl.tcl"
+puts "다음 단계: vivado -mode batch -source vivado/run_impl.tcl"
 puts ""

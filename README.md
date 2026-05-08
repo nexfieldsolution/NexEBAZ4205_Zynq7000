@@ -38,6 +38,53 @@ The 05_Zynq7000 tutorial includes:
 
 ## Getting Started
 
+### Vivado 프로젝트 재생성
+
+`vivado/project_new/`는 git에서 제외됩니다. 아래 스크립트로 재생성하세요.
+
+```bash
+cd /path/to/NexEBAZ4205_Zynq7000
+
+# 1. 프로젝트 생성 (PS7 설정 + AXI GPIO 블록 디자인)
+vivado -mode batch -source vivado/create_project.tcl
+
+# 2. 합성 → 구현 → 비트스트림 → XSA 생성
+vivado -mode batch -source vivado/run_impl.tcl
+```
+
+완료 후 생성되는 파일:
+- `vivado/project_new/ebaz4205_zynq.runs/impl_1/design_1_wrapper.bit` — 비트스트림
+- `vivado/project_new/ebaz4205_zynq.xsa` — Hardware Platform (PetaLinux용)
+- `vivado/project_new/ebaz4205_zynq.gen/.../ps7_init.tcl` — JTAG 부트용 PS 초기화
+
+**보드 설정**: xc7z020clg400-1, PS_CLK 33.333MHz, DDR3 16-bit
+
+### JTAG으로 U-Boot 로드
+
+SD카드를 뽑고 JTAG 연결 후:
+
+```bash
+# PetaLinux 2024.1
+xsdb download_uboot_jtag-2024.tcl
+
+# PetaLinux 2019.2
+xsdb download_uboot_jtag-2019.tcl
+```
+
+시리얼 포트: J7 커넥터 (UART1, 115200bps)
+
+### 하드웨어 연결
+![EBAZ4205 Board](./ebaz4205+io.png)
+
+### JTAG U-Boot 부팅 성공
+![U-Boot OK](./petalinux-uboot-ok-20260508.png)
+
+### SD카드 준비
+
+```bash
+./make-sd.sh /dev/sdX
+```
+
 1. **Hardware Setup**
    - Open Vivado project in `vivado/` directory
    - Review block design configuration

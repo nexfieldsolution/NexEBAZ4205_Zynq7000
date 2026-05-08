@@ -4,7 +4,7 @@
 
 #Clock signal
 set_property -dict { PACKAGE_PIN N18   IOSTANDARD LVCMOS33 } [get_ports { CLK }];
-create_clock -add -name sys_clk_pin -period 30.00 -waveform {0 4} [get_ports { CLK }];
+create_clock -add -name sys_clk_pin -period 20.000 -waveform {0.000 10.000} [get_ports { CLK }];
 
 #Reset
 set_property -dict { PACKAGE_PIN V13   IOSTANDARD LVCMOS33 } [get_ports { RST }]; # BTN[1]
@@ -57,16 +57,16 @@ set_property IOSTANDARD LVCMOS33 [get_ports UART_1_rxd]
 set_property PACKAGE_PIN H17 [get_ports UART_1_txd]
 set_property IOSTANDARD LVCMOS33 [get_ports UART_1_txd]
 
-set_property PACKAGE_PIN T20 [get_ports {GPIO_0_0_tri_io[0]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_0_tri_io[0]}]
-set_property PACKAGE_PIN R18 [get_ports {GPIO_0_0_tri_io[1]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_0_tri_io[1]}]
-set_property PACKAGE_PIN N17 [get_ports {GPIO_0_0_tri_io[2]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_0_tri_io[2]}]
-set_property PACKAGE_PIN R19 [get_ports {GPIO_0_0_tri_io[3]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_0_tri_io[3]}]
-set_property PACKAGE_PIN P20 [get_ports {GPIO_0_0_tri_io[4]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_0_tri_io[4]}]
+set_property PACKAGE_PIN T20 [get_ports {GPIO_0_tri_io[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_tri_io[0]}]
+set_property PACKAGE_PIN R18 [get_ports {GPIO_0_tri_io[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_tri_io[1]}]
+set_property PACKAGE_PIN N17 [get_ports {GPIO_0_tri_io[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_tri_io[2]}]
+set_property PACKAGE_PIN R19 [get_ports {GPIO_0_tri_io[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_tri_io[3]}]
+set_property PACKAGE_PIN P20 [get_ports {GPIO_0_tri_io[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_0_tri_io[4]}]
 
 set_property PACKAGE_PIN P19 [get_ports {BTN[1]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {BTN[1]}]

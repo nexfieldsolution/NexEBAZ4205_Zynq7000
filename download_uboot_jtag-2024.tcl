@@ -4,7 +4,7 @@
 # 주의: SD카드 반드시 뽑고 실행!
 # =============================================================
 
-set PS7    vivado/project_new/app_component/_ide/psinit/ps7_init.tcl
+set PS7    vivado/project_new/ebaz4205_zynq.runs/impl_1/_ide/psinit/ps7_init.tcl
 set BIT    vivado/project_new/ebaz4205_zynq.runs/impl_1/design_1_wrapper.bit
 set UBOOT  "Petalinux-2024.1/u-boot.bin"
 
@@ -24,8 +24,8 @@ fpga $BIT
 
 # U-Boot 로드 및 실행
 target 2
-dow -data $UBOOT 0x400000
-rwr pc 0x400000
+dow -data $UBOOT 0x4000000
+rwr pc 0x4000000
 con
 
 puts ""
