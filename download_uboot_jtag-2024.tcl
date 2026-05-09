@@ -4,7 +4,7 @@
 # 주의: SD카드 반드시 뽑고 실행!
 # =============================================================
 
-set PS7    vivado/project_new/ebaz4205_zynq.runs/impl_1/_ide/psinit/ps7_init.tcl
+set PS7    vivado/project_new/ebaz4205_zynq.gen/sources_1/bd/design_1/ip/design_1_processing_system7_0_0/ps7_init.tcl
 set BIT    vivado/project_new/ebaz4205_zynq.runs/impl_1/design_1_wrapper.bit
 set UBOOT  "Petalinux-2024.1/u-boot-dtb.bin"
 

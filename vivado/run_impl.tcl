@@ -10,15 +10,18 @@ set PROJ_FILE  [file join $PROJ_DIR ebaz4205_zynq.xpr]
 
 open_project $PROJ_FILE
 
-# Synthesis - 이미 완료된 경우 스킵
-if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
+# Synthesis - out-of-date 또는 미완료 시 재실행
+set synth_progress [get_property PROGRESS [get_runs synth_1]]
+set synth_refresh  [get_property NEEDS_REFRESH [get_runs synth_1]]
+if {$synth_progress != "100%" || $synth_refresh} {
+    reset_run synth_1
     launch_runs synth_1 -jobs 4
     wait_on_run synth_1
     if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
         error "Synthesis failed"
     }
 } else {
-    puts "Synthesis 이미 완료 - 스킵"
+    puts "Synthesis 이미 최신 - 스킵"
 }
 
 # Implementation - routed.dcp 있으면 스킵
@@ -51,27 +54,11 @@ write_bitstream -force $bit_file
 # XSA export (bitstream 포함)
 write_hw_platform -fixed -force -include_bit -file [file join $PROJ_DIR ebaz4205_zynq.xsa]
 
-# ps7_init.tcl 복사 (JTAG용)
-set psinit_src [file join $PROJ_DIR ebaz4205_zynq.runs/impl_1/design_1_wrapper.tcl]
-if {![file exists $psinit_src]} {
-    set psinit_src [glob -nocomplain $PROJ_DIR/ebaz4205_zynq.gen/sources_1/bd/design_1/ip/*/ps7_init*.tcl]
-    if {[llength $psinit_src] > 0} { set psinit_src [lindex $psinit_src 0] }
-}
-
-set ide_dir [file join $PROJ_DIR ebaz4205_zynq.runs/impl_1/_ide/psinit]
-file mkdir $ide_dir
-catch {
-    foreach f [glob -nocomplain $PROJ_DIR/ebaz4205_zynq.gen/sources_1/bd/design_1/ip/*/ps7_init*] {
-        file copy -force $f $ide_dir
-    }
-}
+set ps7_path [file join $PROJ_DIR ebaz4205_zynq.gen/sources_1/bd/design_1/ip/design_1_processing_system7_0_0/ps7_init.tcl]
 
 puts ""
 puts "빌드 완료!"
 puts "  비트스트림: $bit_file"
 puts "  XSA: $PROJ_DIR/ebaz4205_zynq.xsa"
-puts "  ps7_init.tcl 위치: $ide_dir"
-puts ""
-puts "download_uboot_jtag-2024.tcl의 PS7 경로를 확인하세요:"
-puts "  set PS7 vivado/project_new/ebaz4205_zynq.runs/impl_1/_ide/psinit/ps7_init.tcl"
+puts "  ps7_init.tcl: $ps7_path"
 puts ""
