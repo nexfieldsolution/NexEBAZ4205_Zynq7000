@@ -12,8 +12,9 @@ set PROJ_NAME  ebaz4205_zynq
 set PART       xc7z020clg400-1
 set BD_NAME    design_1
 
-# 기존 프로젝트 정리
+# 기존 프로젝트 삭제
 if {[file exists $PROJ_DIR]} {
+    puts "기존 프로젝트 삭제: $PROJ_DIR"
     file delete -force $PROJ_DIR
 }
 
