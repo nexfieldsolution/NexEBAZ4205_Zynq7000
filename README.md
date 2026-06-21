@@ -90,6 +90,9 @@ xsdb download_uboot_jtag-2019.tcl
 ![U-Boot OK](./petalinux-2024.1-uboot-ok-20260508.png)
 
 
+### 게시판 기록
+https://nexfield.net/support/board_ref/view/349-FPGA-Zynq-XC7Z020-EBAZ4205-JTAG%EC%9C%BC%EB%A1%9C-uboot-petalinux-
+
 ### PetaLinux 빌드
 
 Docker 환경에서 실행:
@@ -177,3 +180,79 @@ EBAZ4205_Zynq7000/
 **Last Updated**: May 2026  
 **Platform**: Xilinx Zynq-7000  
 **Target Board**: EBAZ4205
+
+---
+
+## u-boot 빌드
+
+### 빌드 환경
+
+PetaLinux 2024.1은 Ubuntu 22.04 Docker 컨테이너에서 빌드.  
+프로젝트 위치: `/media/douglas/ssd240/ebaz4205-project/ebaz4205/`
+
+### Docker 컨테이너 시작
+
+```bash
+cd /media/douglas/ssd240/imx-docker
+./docker-run-ssh-zynq.sh
+```
+
+SSH 터널(원격 프록시 3128) 자동 설정 후 기존 컨테이너 재사용.
+
+### u-boot 빌드 순서
+
+```bash
+source petalinux/settings.sh
+cd ebaz4205
+
+# 클린 빌드 (필요 시)
+petalinux-build -c u-boot -x distclean
+petalinux-build -c uboot-device-tree -x cleansstate
+
+# 빌드
+petalinux-build -c u-boot
+petalinux-build -c uboot-device-tree
+```
+
+### gem0 (eth0) PHY 설정 — system-user.dtsi
+
+eth0 PHY 인식 실패 문제 해결을 위해 uboot-device-tree에 gem0 노드를 추가.
+
+**파일 위치:**
+```
+project-spec/meta-user/meta-xilinx-tools/recipes-bsp/uboot-device-tree/
+├── uboot-device-tree.bbappend   # SRC_URI + do_compile 훅
+└── files/
+    └── system-user.dtsi         # gem0 PHY 설정
+```
+
+**system-user.dtsi 내용:**
+```dts
+&gem0 {
+    phy-handle = <&phy0>;
+    mdio {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        phy0: phy@0 {
+            reg = <0>;
+            device_type = "ethernet-phy";
+        };
+    };
+};
+```
+
+**uboot-device-tree.bbappend 동작:**  
+`do_compile:prepend()` 훅에서 `system-user.dtsi`를 `DT_FILES_PATH`에 복사하고  
+`pcw.dtsi` 끝에 `#include "system-user.dtsi"`를 자동 추가.
+
+### 빌드 결과 확인
+
+```bash
+# DTB 내 gem0 노드 확인
+OFFSET=$(binwalk images/linux/u-boot-dtb.bin | grep -i "flat" | awk '{print $1}')
+SIZE=$(binwalk images/linux/u-boot-dtb.bin | grep -i "flat" | awk '{print $8}')
+dd if=images/linux/u-boot-dtb.bin bs=1 skip=$OFFSET count=$SIZE of=/tmp/check.dtb 2>/dev/null
+dtc -I dtb -O dts /tmp/check.dtb 2>/dev/null | grep -A 15 "ethernet@e000b000"
+```
+
+`phy-handle`과 `mdio` 서브노드가 있으면 적용 성공.
